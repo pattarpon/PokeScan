@@ -24,3 +24,6 @@ dev/
 
 # Logs
 *.log
+
+# App bundles (local only)
+*.app/
