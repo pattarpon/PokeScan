@@ -33,7 +33,26 @@ PokeScan consists of two parts:
 
 ## Installation
 
-### Build from Source
+### One-Click Launcher (Recommended)
+
+```bash
+git clone https://github.com/Veridiann/PokeScan.git
+cd PokeScan
+./launcher/install.sh
+```
+
+Then edit `~/.config/pokescan/pokescan.conf` to set your ROM path:
+
+```bash
+ROM_PATH="$HOME/Games/Pokemon/Emerald.gba"
+SAVE_SLOT="latest"  # or 0-9 for specific slot, "none" to skip
+```
+
+Double-click **PokeScan Launcher** in Applications to start everything automatically.
+
+### Manual Setup
+
+#### Build from Source
 
 ```bash
 git clone https://github.com/Veridiann/PokeScan.git
@@ -43,13 +62,22 @@ swift build -c release
 
 The built executable will be at `.build/release/PokeScan`.
 
-### Using Xcode
+#### Using Xcode
 
 1. Open `Package.swift` in Xcode
 2. Select the PokeScan scheme
 3. Build and Run (Cmd+R)
 
 ## Usage
+
+### With Launcher
+
+Just double-click **PokeScan Launcher** in Applications. It will:
+- Launch mGBA with your ROM and the Lua script
+- Load your save state (if configured)
+- Start the PokeScan overlay
+
+### Manual Usage
 
 1. **Start mGBA** with Pokemon Emerald loaded
 

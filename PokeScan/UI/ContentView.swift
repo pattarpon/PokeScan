@@ -18,8 +18,8 @@ struct ContentView: View {
     private var windowOpacity: Double {
         // Always visible when Pokemon is present
         if hasPokemon { return 1.0 }
-        // When no Pokemon, fade out unless hovering
-        return isHovering ? 1.0 : 0.0
+        // When no Pokemon, show dimmed unless hovering
+        return isHovering ? 1.0 : 0.3
     }
 
     private var isShiny: Bool {
