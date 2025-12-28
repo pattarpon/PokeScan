@@ -1,0 +1,42 @@
+{
+  "activeProfile": "high_ivs",
+  "alwaysAlertShiny": true,
+  "alertSoundEnabled": true,
+  "profiles": {
+    "high_ivs": {
+      "name": "High IVs (Any Pokemon)",
+      "minIVPercent": 80,
+      "notes": "Catch any Pokemon with 80%+ IVs"
+    },
+    "perfect": {
+      "name": "Near Perfect",
+      "minIVPercent": 90,
+      "notes": "Catch any Pokemon with 90%+ IVs"
+    },
+    "shiny_only": {
+      "name": "Shiny Only",
+      "notes": "Only alert on shiny Pokemon"
+    },
+    "shroomish": {
+      "name": "Shroomish Hunt",
+      "species": ["Shroomish"],
+      "requiredNatures": ["Adamant"],
+      "minIVs": {"atk": 25, "spe": 15},
+      "notes": "Adamant Shroomish with good Atk/Spe"
+    },
+    "ralts": {
+      "name": "Ralts Hunt",
+      "species": ["Ralts"],
+      "requiredNatures": ["Timid", "Modest"],
+      "minIVs": {"spa": 25, "spe": 20},
+      "notes": "Special attacker Ralts"
+    },
+    "abra": {
+      "name": "Abra Hunt",
+      "species": ["Abra"],
+      "requiredNatures": ["Timid", "Modest"],
+      "minIVs": {"spa": 26, "spe": 26},
+      "notes": "Fast special attacker Abra"
+    }
+  }
+}

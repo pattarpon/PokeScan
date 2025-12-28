@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Swift/Xcode
+.build/
+.swiftpm/
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+
+# Dev environment (ROMs, saves, local testing)
+dev/
+
+# AI assistant configs (local only)
+.claude/
+.codex/
+
+# Logs
+*.log
