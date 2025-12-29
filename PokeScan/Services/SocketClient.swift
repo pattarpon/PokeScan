@@ -43,9 +43,11 @@ final class SocketClient: ObservableObject, @unchecked Sendable {
     private var reconnectTask: Task<Void, Never>?
     private let networkQueue = DispatchQueue(label: "pokescan.network", qos: .userInitiated)
 
-    // Time-based throttling to prevent fast-forward flooding
+    // Time-based coalescing to prevent fast-forward flooding
     private var lastMessageTime: Date = .distantPast
     private let minMessageInterval: TimeInterval = 0.5  // Max 2 updates per second
+    private var pendingPokemon: RawPokemonPayload?
+    private var flushWorkItem: DispatchWorkItem?
     private let maxBufferSize = 65536  // 64KB max buffer to prevent memory issues
 
     // Flag to prevent reconnection when intentionally stopping
@@ -201,6 +203,38 @@ final class SocketClient: ObservableObject, @unchecked Sendable {
         }
     }
 
+    private func scheduleFlush() {
+        if flushWorkItem != nil {
+            return
+        }
+
+        let elapsed = Date().timeIntervalSince(lastMessageTime)
+        let delay = max(0, minMessageInterval - elapsed)
+        let item = DispatchWorkItem { [weak self] in
+            self?.flushWorkItem = nil
+            self?.flushPending()
+        }
+        flushWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
+    }
+
+    private func flushPending() {
+        guard let pending = pendingPokemon else { return }
+        pendingPokemon = nil
+        lastMessageTime = Date()
+        applyPokemon(pending)
+    }
+
+    private func applyPokemon(_ raw: RawPokemonPayload) {
+        log("PokeScan: RECV species_id=\(raw.species_id ?? -1) exp=\(raw.exp ?? -1)")
+        if let normalized = registry.normalize(raw, dex: dex) {
+            log("PokeScan: Pokemon: \(normalized.speciesName) Lv.\(normalized.level ?? 0) IVs=\(normalized.ivs.hp)/\(normalized.ivs.atk)/\(normalized.ivs.def)/\(normalized.ivs.spa)/\(normalized.ivs.spd)/\(normalized.ivs.spe)")
+            currentPokemon = normalized
+        } else {
+            log("PokeScan: Failed to normalize payload")
+        }
+    }
+
     private func decodeMessage(_ data: Data) {
         do {
             let raw = try JSONDecoder().decode(RawPokemonPayload.self, from: data)
@@ -208,25 +242,17 @@ final class SocketClient: ObservableObject, @unchecked Sendable {
             // Handle clear message - always process immediately
             if raw.clear == true {
                 log("PokeScan: RECV clear")
+                pendingPokemon = nil
+                flushWorkItem?.cancel()
+                flushWorkItem = nil
                 lastMessageTime = Date()
                 currentPokemon = nil
                 return
             }
 
-            // Time-based throttling - skip if too soon after last message
-            let now = Date()
-            if now.timeIntervalSince(lastMessageTime) < minMessageInterval {
-                return  // Skip this message, too soon
-            }
-            lastMessageTime = now
-
-            log("PokeScan: RECV species_id=\(raw.species_id ?? -1) exp=\(raw.exp ?? -1)")
-            if let normalized = registry.normalize(raw, dex: dex) {
-                log("PokeScan: Pokemon: \(normalized.speciesName) Lv.\(normalized.level ?? 0) IVs=\(normalized.ivs.hp)/\(normalized.ivs.atk)/\(normalized.ivs.def)/\(normalized.ivs.spa)/\(normalized.ivs.spd)/\(normalized.ivs.spe)")
-                currentPokemon = normalized
-            } else {
-                log("PokeScan: Failed to normalize payload")
-            }
+            // Coalesce to the latest payload and flush at a steady rate
+            pendingPokemon = raw
+            scheduleFlush()
         } catch {
             log("PokeScan: JSON decode error: \(error)")
             if let str = String(data: data, encoding: .utf8) {

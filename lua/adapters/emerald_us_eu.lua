@@ -3,6 +3,136 @@ GAME_ID = "emerald_us_eu"
 
 local enemyAddr = 0x2024744
 local wildTypeAddr = 0x20240FD  -- Battle type flag: 0 = not in battle, 1 = wild, 2+ = trainer
+local battleTurnsCounterAddr = 0x3005D23  -- Battle turn counter (Emerald US/EU, from PokeLua)
+local timerAddr = 0x30022E4  -- gMain.vblankCounter2 (Emerald US/EU, from PokeLua)
+local mapTypeAddr = 0x203732F  -- Map type (Emerald US/EU, from PokeLua)
+local gMainAddr = 0x30022C0
+local gMainInBattleAddr = gMainAddr + 0x439
+local battleFlagAddrA = 0x0200005A  -- Battle state flag A (derived from save-state scan)
+local battleFlagAddrB = 0x02000070  -- Battle state flag B
+local battleFlagAddrC = 0x0200008B  -- Battle state flag C
+
+local addressesInitialized = false
+
+local function initAddresses()
+  if addressesInitialized then return end
+  if not emu or not emu.read8 then return end
+
+  local gameVersionCode = emu:read8(0x80000AE)
+  local gameLanguageCode = emu:read8(0x80000AF)
+
+  if gameVersionCode == 0x45 then  -- Emerald
+    if gameLanguageCode == 0x4A then  -- JPN
+      wildTypeAddr = 0x2023DA1
+      enemyAddr = 0x20243E8
+      battleTurnsCounterAddr = 0x3005A83
+      timerAddr = 0x3002384
+      mapTypeAddr = 0x2036FCF
+      gMainAddr = 0x3002360
+    else
+      -- EUR/USA (default)
+      wildTypeAddr = 0x20240FD
+      enemyAddr = 0x2024744
+      battleTurnsCounterAddr = 0x3005D23
+      timerAddr = 0x30022E4
+      mapTypeAddr = 0x203732F
+      gMainAddr = 0x30022C0
+    end
+  end
+
+  if gMainAddr then
+    gMainInBattleAddr = gMainAddr + 0x439
+  end
+
+  addressesInitialized = true
+end
+
+-- Battle detection state (handles fast-forward/out-of-battle edge cases)
+local sawBattleTurn = false
+local battleZeroStreak = 0
+local BATTLE_END_ZERO_FRAMES = 30
+local function readMainInBattle()
+  if not gMainInBattleAddr then return nil end
+  local raw = emu:read8(gMainInBattleAddr)
+  return (raw & 0x2) ~= 0
+end
+local function inBattle()
+  initAddresses()
+  local mainInBattle = readMainInBattle()
+  if mainInBattle ~= nil then
+    if not mainInBattle then
+      sawBattleTurn = false
+      battleZeroStreak = 0
+      return false
+    end
+    return true
+  end
+  if battleFlagAddrA and battleFlagAddrB and battleFlagAddrC then
+    local flagA = emu:read8(battleFlagAddrA)
+    local flagB = emu:read8(battleFlagAddrB)
+    local flagC = emu:read8(battleFlagAddrC)
+    if flagA == 0 and flagB == 0 and flagC == 0 then
+      sawBattleTurn = false
+      battleZeroStreak = 0
+      return false
+    end
+    -- Require a combination to avoid false positives while walking
+    if flagA > 0 and (flagB > 0 or flagC > 0) then
+      return true
+    end
+  end
+
+  local battleType = emu:read8(wildTypeAddr)
+  if battleType == 0 then
+    sawBattleTurn = false
+    battleZeroStreak = 0
+    return false
+  end
+
+  if battleTurnsCounterAddr then
+    local turns = emu:read8(battleTurnsCounterAddr)
+    if turns > 0 then
+      sawBattleTurn = true
+      battleZeroStreak = 0
+    elseif sawBattleTurn then
+      battleZeroStreak = battleZeroStreak + 1
+      if battleZeroStreak >= BATTLE_END_ZERO_FRAMES then
+        sawBattleTurn = false
+        battleZeroStreak = 0
+        return false
+      end
+    end
+  end
+
+  return true
+end
+
+function getBattleDebug()
+  initAddresses()
+  local battleType = emu:read8(wildTypeAddr)
+  local turns = battleTurnsCounterAddr and emu:read8(battleTurnsCounterAddr) or -1
+  local mapType = mapTypeAddr and emu:read8(mapTypeAddr) or -1
+  local pid = emu:read32(enemyAddr)
+  local mainInBattle = readMainInBattle()
+  local flagA = battleFlagAddrA and emu:read8(battleFlagAddrA) or -1
+  local flagB = battleFlagAddrB and emu:read8(battleFlagAddrB) or -1
+  local flagC = battleFlagAddrC and emu:read8(battleFlagAddrC) or -1
+  local flagD = emu:read8(0x02022B4B)
+  local flagE = emu:read32(0x02022B4C)
+  return {
+    battleType = battleType,
+    turns = turns,
+    sawBattleTurn = sawBattleTurn,
+    mapType = mapType,
+    pid = pid or 0,
+    mainInBattle = mainInBattle,
+    flagA = flagA,
+    flagB = flagB,
+    flagC = flagC,
+    flagD = flagD,
+    flagE = flagE,
+  }
+end
 
 local natureNamesList = {
   "Hardy",
@@ -159,8 +289,7 @@ end
 
 function readWildPokemon()
   -- First check if we're actually in a battle
-  local battleType = emu:read8(wildTypeAddr)
-  if battleType == 0 then return nil end  -- Not in battle, return nil
+  if not inBattle() then return nil end  -- Not in battle, return nil
 
   local pokemonPID = emu:read32(enemyAddr)
   if pokemonPID == 0 then return nil end
